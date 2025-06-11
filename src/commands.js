@@ -13,6 +13,11 @@ export const INVITE_COMMAND = {
     description: "Get an invite link to add the bot to your server",
 };
 
+export const BOT_COMMAND = {
+    name: "help",
+    description: "Return all the commands for the bot",
+};
+
 export const USER_INFO = {
     name: "userinfo",
     description: "Fetches a roblox user info",

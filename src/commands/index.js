@@ -9,6 +9,7 @@ import { command as setupBot } from "./setupBot.js";
 import { command as restrictUser } from "./restrictUser.js";
 import { command as unRestrictUser } from "./unRestrictUser.js";
 import { command as redeemCode } from "./redeemCode.js";
+import { command as botCommands } from "./botCommands.js";
 
 export const commands = {
     [awwCommand.name.toLowerCase()]: awwCommand,
@@ -21,4 +22,5 @@ export const commands = {
     [restrictUser.name.toLocaleLowerCase()]: restrictUser,
     [unRestrictUser.name.toLocaleLowerCase()]: unRestrictUser,
     [redeemCode.name.toLocaleLowerCase()]: redeemCode,
+    [botCommands.name.toLocaleLowerCase()]: botCommands,
 };
