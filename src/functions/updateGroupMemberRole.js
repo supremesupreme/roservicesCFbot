@@ -4,32 +4,58 @@
  * @returns returns json data of userdata.
  */
 import { GroupsApi } from "openblox/cloud";
-import { getRoleIdByName } from './roleIdToRoleName';
+import { getRoleIdByName } from "./roleIdToRoleName";
 import { getUserIdByUserName } from "./userNametoUserId";
 import { databaseFetch } from "./databaseFetch";
 import { decrypt } from "./cryption";
 import { getEncryptionKey } from "../runtime/encryptionkey";
 import { createOpenbloxConfig } from "openblox/config";
+import { getRankFromRoleId } from "./roleIdtoRank";
 
-export async function updateGroupMemberRole(guildId, groupId, userName, roleName) {
+export async function updateGroupMemberRole(
+    guildId,
+    groupId,
+    userName,
+    roleName,
+) {
     try {
-        let databaseResponse = await databaseFetch(guildId, 'setupData');
+        let databaseResponse = await databaseFetch(guildId, "setupData");
         let encryptionKey = getEncryptionKey();
-        let apiKey = databaseResponse?.res?.encryptedkey?.trim().replace(/^"(.*)"$/, '$1').replace(/\s+/g, '');
-        if(!apiKey) return {success:false, reason:"no apikey found"}
-        var decryptedKey = await decrypt(apiKey, `${guildId}_${encryptionKey}`)
+        let apiKey = databaseResponse?.res?.encryptedkey
+            ?.trim()
+            .replace(/^"(.*)"$/, "$1")
+            .replace(/\s+/g, "");
+
+        if (!apiKey) return { success: false, reason: "no apikey found" };
+
+        var decryptedKey = await decrypt(apiKey, `${guildId}_${encryptionKey}`);
         let userId = await getUserIdByUserName(userName);
         let roleId = await getRoleIdByName(groupId, roleName);
+        let roleIdRank = await getRankFromRoleId(roleId);
+        let rankLimit = databaseResponse.res?.rankLimit;
+        console.log(rankLimit + " " + roleIdRank);
 
-        const { data: updateMemberRole } = await GroupsApi.updateGroupMemberRole.bind( createOpenbloxConfig({ cloudKey: `${decryptedKey}` }) )({
-        groupId: groupId,
-        userId:  userId,
-        roleId: roleId 
-        });
+        if (roleIdRank >= rankLimit)
+            return {
+                success: false,
+                reason: `Role is higher than ${rankLimit} `,
+            };
 
-        return {success: true, updateMemberRole}
+        let rankLockedUsers = databaseResponse.res?.rankLockedUsers;
+        if (rankLockedUsers.includes(userId))
+            return { success: false, usrError: "user rank locked..." };
+
+        const { data: updateMemberRole } =
+            await GroupsApi.updateGroupMemberRole.bind(
+                createOpenbloxConfig({ cloudKey: `${decryptedKey}` }),
+            )({
+                groupId: groupId,
+                userId: userId,
+                roleId: roleId,
+            });
+
+        return { success: true, updateMemberRole };
     } catch (err) {
-       return {success: false, err}
+        return { success: false, err };
     }
-    
 }

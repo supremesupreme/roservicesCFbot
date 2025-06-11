@@ -10,6 +10,8 @@ import { command as restrictUser } from "./restrictUser.js";
 import { command as unRestrictUser } from "./unRestrictUser.js";
 import { command as redeemCode } from "./redeemCode.js";
 import { command as botCommands } from "./botCommands.js";
+import { command as rankLock } from "./rankLock.js";
+import { command as unRankLock } from "./unRankLock.js";
 
 export const commands = {
     [awwCommand.name.toLowerCase()]: awwCommand,
@@ -23,4 +25,6 @@ export const commands = {
     [unRestrictUser.name.toLocaleLowerCase()]: unRestrictUser,
     [redeemCode.name.toLocaleLowerCase()]: redeemCode,
     [botCommands.name.toLocaleLowerCase()]: botCommands,
+    [rankLock.name.toLocaleLowerCase()]: rankLock,
+    [unRankLock.name.toLocaleLowerCase()]: unRankLock,
 };

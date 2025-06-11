@@ -74,6 +74,7 @@ export const command = {
         let robloxRole = interaction.data.options?.find(
             (opt) => opt.name === "rank",
         )?.value;
+
         let res = await updateGroupMemberRole(
             interaction.guild.id,
             groupId,
@@ -85,7 +86,7 @@ export const command = {
             return {
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                 data: {
-                    content: `Failed to rank user: ${JSON.stringify(res?.reason || res.err.errors)}`,
+                    content: `Failed to rank user: ${JSON.stringify(res?.reason || res?.err?.errors || res?.usrError)}`,
                     flags: InteractionResponseFlags.EPHEMERAL,
                 },
             };

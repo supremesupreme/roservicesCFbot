@@ -193,3 +193,29 @@ export const REDEEM_PREMIUM_CODE = {
         },
     ],
 };
+
+export const RANKLOCK_USER = {
+    name: "ranklock",
+    description: "Freezes a user's rank",
+    options: [
+        {
+            name: "username",
+            type: 3,
+            description: "User to ranklock",
+            required: true,
+        },
+    ],
+};
+
+export const UNRANKLOCK_USER = {
+    name: "unranklock",
+    description: "unFreezes a user's rank",
+    options: [
+        {
+            name: "username",
+            type: 3,
+            description: "User to unranklock",
+            required: true,
+        },
+    ],
+};
