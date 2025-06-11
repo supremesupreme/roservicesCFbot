@@ -9,21 +9,19 @@ export const command = {
     name: "help",
     description: "Return all the commands for the bot",
     handler: async (interaction, env) => {
-        // Group commands by category if needed, or create fields for each command
         const commandFields = Object.entries(commands).map(
             ([name, command]) => ({
                 name: `\`/${name}\``,
                 value: `${command.description}`,
-                inline: true, // Set to true for 2-column layout, false for single column
+                inline: true,
             }),
         );
 
-        // Create the embed
         const embed = {
             title: "🤖 Bot Help Menu",
             description:
                 "Here are all the available commands you can use with this bot:",
-            color: 0x00d4ff, // Nice blue color
+            color: 11654809,
             fields: commandFields,
             footer: {
                 text: `${Object.keys(commands).length} commands available • Use /help to see this menu`,
@@ -40,7 +38,7 @@ export const command = {
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: {
                 embeds: [embed],
-                flags: InteractionResponseFlags.EPHEMERAL, // Only visible to the user
+                flags: InteractionResponseFlags.EPHEMERAL,
             },
         };
     },
