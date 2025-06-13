@@ -4,22 +4,17 @@
  * @returns returns json data of userdata.
  */
 import { GroupsApi } from "openblox/cloud";
-import { getRoleIdByName } from "./roleIdToRoleName";
-import { getUserIdByUserName } from "./userNametoUserId";
 import { databaseFetch } from "./databaseFetch";
 import { decrypt } from "./cryption";
 import { getEncryptionKey } from "../runtime/encryptionkey";
 import { createOpenbloxConfig } from "openblox/config";
 import { getRankFromRoleId } from "./roleIdtoRank";
+import { ClassicUsersApi } from "openblox/classic";
 
-export async function updateGroupMemberRole(
-    guildId,
-    groupId,
-    userName,
-    roleName,
-) {
+export async function updateGroupMemberRole(guildId, groupId, userId, roleId) {
     try {
         let databaseResponse = await databaseFetch(guildId, "setupData");
+
         let encryptionKey = getEncryptionKey();
         let apiKey = databaseResponse?.res?.encryptedkey
             ?.trim()
@@ -29,11 +24,11 @@ export async function updateGroupMemberRole(
         if (!apiKey) return { success: false, reason: "no apikey found" };
 
         var decryptedKey = await decrypt(apiKey, `${guildId}_${encryptionKey}`);
-        let userId = await getUserIdByUserName(userName);
-        let roleId = await getRoleIdByName(groupId, roleName);
+        const { data: userNameData } = await ClassicUsersApi.usersInfoFromIds({
+            userIds: [userId],
+        });
         let roleIdRank = await getRankFromRoleId(roleId);
         let rankLimit = databaseResponse.res?.rankLimit;
-        console.log(rankLimit + " " + roleIdRank);
 
         if (roleIdRank >= rankLimit)
             return {
@@ -42,7 +37,7 @@ export async function updateGroupMemberRole(
             };
 
         let rankLockedUsers = databaseResponse.res?.rankLockedUsers;
-        if (rankLockedUsers.includes(userId))
+        if (rankLockedUsers.includes(Number(userId)))
             return { success: false, usrError: "user rank locked..." };
 
         const { data: updateMemberRole } =
@@ -54,8 +49,9 @@ export async function updateGroupMemberRole(
                 roleId: roleId,
             });
 
-        return { success: true, updateMemberRole };
+        return { success: true, updateMemberRole, userNameData };
     } catch (err) {
+        console.log(err);
         return { success: false, err };
     }
 }

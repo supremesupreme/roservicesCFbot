@@ -29,11 +29,6 @@ class JsonResponse extends Response {
 }
 
 const router = AutoRouter();
-
-router.get("/", (_request, env) => {
-    return new Response(`👋 ${env.DISCORD_APPLICATION_ID}`);
-});
-
 router.post("/", async (request, env) => {
     // Initialize global configs
     setGlobalConfig(env);
@@ -55,6 +50,40 @@ router.post("/", async (request, env) => {
 
     if (interaction.type === InteractionType.PING) {
         return new JsonResponse({ type: InteractionResponseType.PONG });
+    }
+
+    // ✅ NEW: Handle autocomplete interactions
+    if (interaction.type === InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE) {
+        const commandName = interaction.data.name.toLowerCase();
+        const command = commands[commandName];
+
+        if (!command || typeof command.handler !== "function") {
+            return new JsonResponse(
+                { error: "Unknown Command for autocomplete" },
+                { status: 400 },
+            );
+        }
+
+        try {
+            const response = await command.handler(interaction, env);
+            return new JsonResponse(response);
+        } catch (e) {
+            console.error("Error in autocomplete handler:", e);
+            return new JsonResponse(
+                {
+                    type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
+                    data: {
+                        choices: [
+                            {
+                                name: "❌ Error loading roles",
+                                value: "error_loading",
+                            },
+                        ],
+                    },
+                },
+                { status: 200 },
+            );
+        }
     }
 
     if (interaction.type === InteractionType.APPLICATION_COMMAND) {

@@ -4,19 +4,22 @@
  * @returns returns json data of userdata.
  */
 import { GroupsApi } from "openblox/cloud";
-import { getUserIdByUserName } from "./userNametoUserId";
+import { ClassicUsersApi } from "openblox/classic";
 
-export async function acceptUserJoinRequest(groupId, userName) {
+export async function acceptUserJoinRequest(groupId, userId) {
     try {
-        let userId = await getUserIdByUserName(userName);
-        const { data: acceptuserdata } = await GroupsApi.acceptGroupJoinRequest({
-        groupId: groupId,
-        userId:  userId,
+        const { data: userNameData } = await ClassicUsersApi.usersInfoFromIds({
+            userIds: [userId],
         });
+        const { data: acceptuserdata } = await GroupsApi.acceptGroupJoinRequest(
+            {
+                groupId: groupId,
+                userId: userId,
+            },
+        );
 
-        return {success: true, acceptuserdata}
+        return { success: true, acceptuserdata, userNameData };
     } catch (err) {
-       return {success: false, err}
+        return { success: false, err };
     }
-    
 }

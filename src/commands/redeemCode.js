@@ -23,6 +23,16 @@ export const command = {
 
         let isRedeemed = databaseResponse2?.res?.redeemed;
 
+        if (isRedeemed || databaseResponse2?.res?.guildId) {
+            return {
+                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                data: {
+                    content: `> This code has already been redeemed or expired`,
+                    flags: InteractionResponseFlags.EPHEMERAL,
+                },
+            };
+        }
+
         let adminRoleId = databaseResponse?.res?.adminRole;
         let premiumCodeData = interaction.data.options?.find(
             (opt) => opt.name === "premiumcode",
@@ -61,16 +71,6 @@ export const command = {
             }
         }
 
-        if (isRedeemed === true) {
-            return {
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                    content: `> This code has already been redeemed or expired`,
-                    flags: InteractionResponseFlags.EPHEMERAL,
-                },
-            };
-        }
-
         let res = await redeemPremium(interaction.guild.id, premiumCodeData);
 
         if (res?.success === true) {
@@ -85,9 +85,9 @@ export const command = {
             return {
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                 data: {
-                    content: `Failed.. check your inputs if this error continue contact the developer. Maybe the code has already been redeemed.`,
+                    content: `Failed.. check your inputs if this error continue contact the developer. Maybe the code has already been redeemed or check if you have set up the bot via /setup.`,
+                    flags: InteractionResponseFlags.EPHEMERAL,
                 },
-                flags: InteractionResponseFlags.EPHEMERAL,
             };
         }
     },

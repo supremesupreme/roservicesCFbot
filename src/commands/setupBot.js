@@ -8,7 +8,57 @@ import {
 export const command = {
     name: "setup",
     description: "Setup up the bot for use",
+    options: [
+        {
+            name: "apikey",
+            description: "Roblox API key",
+            type: 3, // STRING
+            required: true,
+        },
+        {
+            name: "groupid",
+            description: "Roblox Group ID",
+            type: 3, // STRING
+            required: true,
+        },
+        {
+            name: "adminrole",
+            description: "Discord admin role",
+            type: 8, // ROLE
+            required: false,
+            autocomplete: true,
+        },
+        {
+            name: "rankpermsrole",
+            description: "Rank permissions role",
+            type: 8, // ROLE
+            required: false,
+            autocomplete: true,
+        },
+        {
+            name: "moderationrole",
+            description: "Moderation role",
+            type: 8, // ROLE
+            required: false,
+            autocomplete: true,
+        },
+        {
+            name: "ranklimit",
+            description: "Rank limit for the bot",
+            type: 3, // STRING
+            required: false,
+            autocomplete: true,
+        },
+        {
+            name: "placeid",
+            description: "Roblox Place ID",
+            type: 3, // STRING
+            required: false,
+        },
+    ],
+
     handler: async (interaction, env) => {
+        // Handle regular command execution
         let databaseResponse = await databaseFetch(
             interaction.guild.id,
             "setupData",
@@ -68,7 +118,7 @@ export const command = {
             (opt) => opt.name === "ranklimit",
         )?.value;
         let placeId = interaction.data.options?.find(
-            (opt) => opt.name === "placeId",
+            (opt) => opt.name === "placeid",
         )?.value;
         let guildId = interaction.guild.id;
 
@@ -96,8 +146,8 @@ export const command = {
                 type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                 data: {
                     content: `Failed.. check your inputs if this error continue contact the developer.`,
+                    flags: InteractionResponseFlags.EPHEMERAL,
                 },
-                flags: InteractionResponseFlags.EPHEMERAL,
             };
         }
     },

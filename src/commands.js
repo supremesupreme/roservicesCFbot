@@ -40,12 +40,14 @@ export const SET_RANK = {
             type: 3,
             description: "Roblox username",
             required: true,
+            autocomplete: true,
         },
         {
             name: "rank",
             type: 3,
             description: "Roblox Rank",
             required: true,
+            autocomplete: true,
         },
     ],
 };
@@ -59,6 +61,7 @@ export const ACCEPT_JOIN_REQUEST = {
             type: 3,
             description: "Roblox username",
             required: true,
+            autocomplete: true,
         },
     ],
 };
@@ -72,6 +75,7 @@ export const DECLINE_JOIN_REQUEST = {
             type: 3,
             description: "Roblox username",
             required: true,
+            autocomplete: true,
         },
     ],
 };
@@ -84,25 +88,25 @@ export const SETUP_BOT = {
             name: "groupid",
             type: 3,
             description: "Roblox groupId",
-            required: true,
+            required: false,
         },
         {
             name: "adminrole",
             type: 8,
             description: "Role responsible for administration",
-            required: true,
+            required: false,
         },
         {
             name: "rankpermsrole",
             type: 8,
             description: "Role responsible for ranking",
-            required: true,
+            required: false,
         },
         {
             name: "moderationrole",
             type: 8,
             description: "Role responsible for moderation",
-            required: true,
+            required: false,
         },
         {
             name: "ranklimit",
@@ -110,7 +114,7 @@ export const SETUP_BOT = {
             description: "Max the bot is allowed to rank",
             min_value: 0,
             max_value: 255,
-            required: true,
+            required: false,
         },
         {
             name: "apikey",

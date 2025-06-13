@@ -2,15 +2,110 @@
 import { declineUserJoinRequest } from "../functions/declineGroupJoinRequest";
 import { isPremiumCodeValid } from "../functions/isPremiumCodeValid";
 import { databaseFetch } from "../functions/databaseFetch";
+import { GroupsApi } from "openblox/cloud";
+import { UsersApi } from "openblox/cloud";
 import {
     InteractionResponseType,
     InteractionResponseFlags,
+    InteractionType,
 } from "discord-interactions";
 
 export const command = {
     name: "declinejoinrequest",
     description: "Declines a user join request",
     handler: async (interaction, env) => {
+        if (
+            interaction.type ===
+            InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE
+        ) {
+            const focused = interaction.data.options?.find((o) => o.focused);
+            if (!focused) {
+                return {
+                    type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
+                    data: { choices: [] },
+                };
+            }
+
+            const db = await databaseFetch(interaction.guild.id, "setupData");
+            const groupId = db?.res?.groupId;
+            if (!groupId) {
+                return {
+                    type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
+                    data: {
+                        choices: [
+                            { name: "Group not configured", value: "no_group" },
+                        ],
+                    },
+                };
+            }
+
+            const rawInput = (focused.value || "").toLowerCase().trim();
+
+            if (focused.name === "username") {
+                try {
+                    const allMembers = [];
+                    for await (const {
+                        data: members,
+                    } of await GroupsApi.groupJoinRequests({
+                        groupId,
+                        limit: 50,
+                    })) {
+                        allMembers.push(...members);
+                    }
+
+                    const matchedMembers = allMembers.slice(0, 25);
+
+                    const usernames = await Promise.all(
+                        matchedMembers.map(async (m) => {
+                            const userId = m.user.split("/")[1];
+                            try {
+                                const { data: userRawData } =
+                                    await UsersApi.userInfo({ userId: userId });
+                                return {
+                                    id: userRawData.id,
+                                    username: userRawData.name,
+                                };
+                            } catch {
+                                return null;
+                            }
+                        }),
+                    );
+
+                    const filtered = usernames
+                        .filter(Boolean)
+                        .filter((u) =>
+                            u.username.toLowerCase().includes(rawInput),
+                        )
+                        .slice(0, 25);
+
+                    const choices = filtered.map((u) => ({
+                        name: u.username,
+                        value: u.id,
+                    }));
+
+                    return {
+                        type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
+                        data: { choices },
+                    };
+                } catch (err) {
+                    console.error("Autocomplete error (username):", err);
+                    return {
+                        type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
+                        data: {
+                            choices: [
+                                { name: "Error loading users", value: "error" },
+                            ],
+                        },
+                    };
+                }
+            }
+
+            return {
+                type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
+                data: { choices: [] },
+            };
+        }
+
         let databaseResponse = await databaseFetch(
             interaction.guild.id,
             "setupData",
@@ -71,6 +166,10 @@ export const command = {
         let robloxUsername = interaction.data.options?.find(
             (opt) => opt.name === "username",
         )?.value;
+
+        if (!Number.isInteger(Number(robloxUsername)))
+            robloxUsername = await getUserIdByUserName(robloxUsername);
+
         let res = await declineUserJoinRequest(groupId, robloxUsername);
 
         if (res?.success === false) {
@@ -88,8 +187,8 @@ export const command = {
             data: {
                 embeds: [
                     {
-                        title: `${robloxUsername} request got declined...`,
-                        description: `> <:icons_Correct:1063605864323362897> ${robloxUsername} has been declined 🙏`,
+                        title: `${res.userNameData[robloxUsername].name} request got declined...`,
+                        description: `> <:icons_Correct:1063605864323362897> ${res.userNameData[robloxUsername].name} has been declined 🙏`,
                         color: 11654809,
                         footer: {
                             text: "Powered by Roblox Oauth2 API",

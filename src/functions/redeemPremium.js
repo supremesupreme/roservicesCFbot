@@ -1,28 +1,32 @@
 import { getRedis } from "../runtime/redis";
+import { databaseFetch } from "./databaseFetch";
 
 export async function redeemPremium(guildId, premiumCode) {
     let redis = getRedis();
 
     try {
+        let databaseResponse = await databaseFetch(guildId, "setupData");
         let premiumDataRaw = await redis.get(`premiumcode:${premiumCode}`);
-        let setupDataModiify = await redis.get(`${guildId}_setupData`);
+        let setupDataModify = await redis.get(`${guildId}_setupData`);
 
+        // Now you can modify the objects
         premiumDataRaw.guildId = guildId;
         premiumDataRaw.redeemedAt = new Date().toISOString();
         premiumDataRaw.redeemed = true;
-        setupDataModiify.premiumCode = premiumCode;
+        setupDataModify.premiumCode = premiumCode;
 
         const ttl = await redis.ttl(`premiumcode:${premiumCode}`);
 
-        await redis.set(
+        // Store the modified objects back as JSON strings
+        let b = await redis.set(
             `premiumcode:${premiumCode}`,
             JSON.stringify(premiumDataRaw),
             { ex: ttl },
         );
 
-        await redis.set(
+        let d = await redis.set(
             `${guildId}_setupData`,
-            JSON.stringify(setupDataModiify),
+            JSON.stringify(setupDataModify),
         );
 
         return {
